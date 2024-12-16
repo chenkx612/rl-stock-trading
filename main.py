@@ -1,13 +1,12 @@
-import data
-from utils import Visualizer, RandomSeedManager
-from strategy import BaselineAgent, DQNAgent
+from utils import Visualizer, RandomSeedManager, SingleStockDataGenerator
+from agent import BaselineAgent, DQNAgent
 from env import EasyTradingEnv
 import pandas as pd
 from matplotlib import pyplot as plt
 
 def test_agent():
     # 生成股票数据
-    data_gen = data.SingleStockDataGenerator()
+    data_gen = SingleStockDataGenerator()
     data_gen.generate()
     stock_data = data_gen.get('2022-12-03', '2024-12-13')
 
@@ -27,19 +26,19 @@ def test_agent():
         env.render()
 
 def test_single_stock():
-    data_gen = data.SingleStockDataGenerator()
+    data_gen = SingleStockDataGenerator()
     data_gen.generate()
     visual = Visualizer()
     visual.plot_price(data_gen.data)
 
 def test_multi_stock():
     stock_num = 100
-    data_gen = data.SingleStockDataGenerator()
+    data_gen = SingleStockDataGenerator()
     last_prices = []
     for _ in range(100):
         data_gen.reset()
         data_gen.generate()
-        last_prices.append(data_gen.data.iloc[-1]['close'])
+        last_prices.append(data_gen.iloc[-1]['close'])
     
     print('min price: ', min(last_prices))
     print('max price: ', max(last_prices))
@@ -60,7 +59,7 @@ def test_dqn():
     seed_manager = RandomSeedManager()
 
     # generate data
-    data_gen = data.SingleStockDataGenerator()
+    data_gen = SingleStockDataGenerator()
     data_gen.generate()
 
     # create env
