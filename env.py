@@ -69,7 +69,7 @@ class EasyTradingEnv(TradingEnv):
                 self.stock_owned += 100  # 增加持有的股票
         elif action == 2:
             # 卖出100股
-            if self.owned_shares >= 100:  # 如果有足够的股票
+            if self.stock_owned >= 100:  # 如果有足够的股票
                 self.balance += 100 * self.stock_price  # 增加资金
                 self.stock_owned -= 100  # 减少持有的股票
         elif action != 0: # 如果动作非法

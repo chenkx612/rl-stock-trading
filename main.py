@@ -1,6 +1,6 @@
 import data
-from visualization import Visualizer
-from strategy import BaselineAgent
+from utils import Visualizer, RandomSeedManager
+from strategy import BaselineAgent, DQNAgent
 from env import EasyTradingEnv
 import pandas as pd
 from matplotlib import pyplot as plt
@@ -55,7 +55,34 @@ def test_multi_stock():
     # 显示图形
     plt.show()
 
+def test_dqn():
+    # set random seed
+    seed_manager = RandomSeedManager()
+
+    # generate data
+    data_gen = data.SingleStockDataGenerator()
+    data_gen.generate()
+
+    # create env
+    env = EasyTradingEnv(data_gen.data)  
+
+    # create dqn agent
+    state_dim = env.observation_space.shape[0]  # 状态空间维度
+    action_dim = env.action_space.n  # 动作空间维度
+    agent = DQNAgent(state_dim, action_dim)
+
+    # 训练智能体
+    returns = agent.train(env, num_episodes=10)
+    # 保存模型
+    agent.save_model("dqn_trading_model.pth")
+    # 加载模型
+    agent.load_model("dqn_trading_model.pth")
+    # 可视化训练结果
+    visual = Visualizer()
+    visual.plot_returns(returns, 'DQN', 'Easy Trading Enviroment')
+
 if __name__ == '__main__':
     # test_gen()    
     # test_agent()
-    test_single_stock()
+    # test_single_stock()
+    test_dqn()
