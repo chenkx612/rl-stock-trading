@@ -12,9 +12,8 @@ import os
 # Agent子类：对于EasyTradingEnv，采用DQN算法
 class DQNAgent(Agent):
     def __init__(self, state_dim, action_dim, epsilon=0.1, alpha=0.001, gamma=0.99, batch_size=64, memory_size=10000):
+        super(DQNAgent, self).__init__(state_dim, action_dim)
         # 初始化网络、优化器和经验回放池
-        self.state_dim = state_dim
-        self.action_dim = action_dim
         self.epsilon = epsilon  # 探索率
         self.alpha = alpha  # 学习率
         self.gamma = gamma  # 折扣因子
@@ -123,13 +122,8 @@ class DQNAgent(Agent):
 
     def save_model(self, filename):
         """保存模型参数到本地"""
-        # 创建模型保存路径
-        model_dir = "models"
-        if not os.path.exists(model_dir):
-            os.makedirs(model_dir)
-
         # 定义模型保存路径
-        model_path = os.path.join(model_dir, filename) 
+        model_path = os.path.join(self.model_dir, filename) 
 
         # 保存模型
         torch.save(self.q_network.state_dict(), model_path)
@@ -137,8 +131,7 @@ class DQNAgent(Agent):
 
     def load_model(self, filename):
         """加载本地模型参数"""
-        model_dir = "models"
-        model_path = os.path.join(model_dir, filename) 
+        model_path = os.path.join(self.model_dir, filename) 
         self.q_network.load_state_dict(torch.load(model_path, weights_only=True))
         self.q_network.to(self.device)
         print(f"Model loaded from {model_path}")

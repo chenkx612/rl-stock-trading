@@ -14,7 +14,7 @@ def test_agent():
     env = EasyTradingEnv(stock_data=stock_data, initial_balance=10000)
 
     # 创建基线智能体
-    agent = BaselineAgent(action_space=env.action_space, state_space=env.observation_space)
+    agent = BaselineAgent(env.action_space.n, env.observation_space.shape[0])
 
     # 与环境交互
     state = env.reset()
@@ -82,6 +82,6 @@ def test_dqn():
 
 if __name__ == '__main__':
     # test_gen()    
-    # test_agent()
+    test_agent()
     # test_single_stock()
     test_dqn()

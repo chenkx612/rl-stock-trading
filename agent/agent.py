@@ -1,14 +1,20 @@
 # agent/agent.py
+from tqdm import tqdm
+import os
+
 class Agent:
-    def __init__(self, action_space, state_space):
+    def __init__(self, state_dim, action_dim):
         """
         初始化智能体
 
         :param action_space: 动作空间
         :param state_space: 状态空间
         """
-        self.action_space = action_space  # 动作空间
-        self.state_space = state_space  # 状态空间
+        self.state_dim = state_dim
+        self.action_dim = action_dim
+        self.model_dir = "models"  # 模型参数存储路径
+        if not os.path.exists(self.model_dir):
+            os.makedirs(self.model_dir)
 
     def choose_action(self, state):
         """
@@ -32,21 +38,29 @@ class Agent:
         raise NotImplementedError("update方法必须在子类中实现")
 
     def train(self, env, num_episodes=1000):
-        """
-        训练智能体与环境进行交互
-
-        :param env: 环境
-        :param num_episodes: 训练的回合数
-        """
-        for episode in range(num_episodes):
-            state = env.reset()  # 重置环境，获取初始状态
+        """训练智能体，并记录每个 episode 的累计 return"""
+        returns = []  # 用于记录每个 episode 的累计 return
+        for episode in tqdm(range(num_episodes), desc="Training Progress"):
+            state = env.reset()
             done = False
+            total_reward = 0  # 当前 episode 的累计 return
 
             while not done:
-                action = self.choose_action(state)  # 根据当前状态选择一个动作
-                next_state, reward, done, info = env.step(action)  # 执行动作，获取反馈
-                self.update(state, action, reward, next_state, done)  # 更新智能体的策略
-                state = next_state  # 更新状态
+                action = self.choose_action(state)
+                next_state, reward, done, _ = env.step(action)
+                self.update(state, action, reward, next_state, done)
+                state = next_state
+                total_reward += reward
 
-            if episode % 100 == 0:
-                print(f"Episode {episode}/{num_episodes} completed.")
+            # 记录当前 episode 的累计 return
+            returns.append(total_reward)
+
+        return returns
+    
+    def save_model(self, filename):
+        """保存模型参数到本地"""
+        raise NotImplementedError("save_model方法必须在子类中实现")
+
+    def load_model(self, filename):
+        """加载本地模型参数"""
+        raise NotImplementedError("load_model方法必须在子类中实现")
