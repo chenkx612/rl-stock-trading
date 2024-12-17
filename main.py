@@ -78,10 +78,10 @@ def test_dqn():
     agent.load_model("dqn_trading_model.pth")
     # 可视化训练结果
     visual = Visualizer()
-    visual.plot_returns(returns, 'DQN', 'Easy Trading Enviroment')
+    visual.plot_returns(returns, env.initial_balance, 'DQN', 'Easy Trading Enviroment')
 
 if __name__ == '__main__':
     # test_gen()    
-    test_agent()
+    # test_agent()
     # test_single_stock()
     test_dqn()

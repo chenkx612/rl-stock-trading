@@ -1,6 +1,7 @@
 # utils/visualizer.py
 import pandas as pd
 from matplotlib import pyplot as plt
+import numpy as np
 
 class Visualizer:
     def __init__(self):
@@ -41,10 +42,11 @@ class Visualizer:
         else:
             plt.show()
 
-    def plot_returns(self, return_list, agent_name, env_name):
+    def plot_returns(self, return_list, initial_balance, agent_name, env_name):
         episodes_list = list(range(len(return_list)))
+        return_list = np.array(return_list) / initial_balance
         plt.plot(episodes_list, return_list)
         plt.xlabel('Episodes')
-        plt.ylabel('Returns')
+        plt.ylabel('Yield (%)')
         plt.title('{} on {}'.format(agent_name, env_name))
         plt.show()

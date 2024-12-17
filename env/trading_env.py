@@ -11,6 +11,11 @@ class TradingEnv(gym.Env):
         self.initial_balance = initial_balance  # 初始账户余额
         self.current_step = 0  # 当前时间步
         self.balance = self.initial_balance  # 当前余额
+        self.total_value = self.balance
+
+    def update_total_value(self):
+        '''更新total_value, 也即当前所有资产总价值'''
+        raise NotImplementedError("该方法必须在子类中实现")
     
     def get_state(self):
         raise NotImplementedError("get_state方法必须在子类中实现")
@@ -18,8 +23,10 @@ class TradingEnv(gym.Env):
     def reset(self):
         self.current_step = 0
         self.balance = self.initial_balance
+        self.total_value = self.balance
         
     def step(self, action):
+        '''返回 next_state, reward, down, info'''
         raise NotImplementedError("step方法必须在子类中实现")
     
     def render(self):
