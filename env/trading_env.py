@@ -11,6 +11,9 @@ class TradingEnv(gym.Env):
         self.initial_balance = initial_balance  # 初始账户余额
         self.current_step = 0  # 当前时间步
         self.balance = self.initial_balance  # 当前余额
+    
+    def get_state(self):
+        raise NotImplementedError("get_state方法必须在子类中实现")
         
     def reset(self):
         self.current_step = 0
