@@ -75,7 +75,7 @@ def main():
 
     # create env
     train_data = data_gen.get(start_date='2000-01-01', end_date='2019-12-31')
-    val_data = data_gen.get(start_date='2020-01-01', end_date='2024-01-01')
+    val_data = data_gen.get(start_date='2020-01-01', end_date='2021-01-01')
     train_env = EasyTradingEnv(train_data)
     val_env = EasyTradingEnv(val_data)
 

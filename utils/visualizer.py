@@ -54,7 +54,7 @@ class Visualizer:
     def plot_return_rates(self, return_rates, dates):
         '''绘制收益率(%)随时间的图像'''
         plt.figure(figsize=(12, 6))
-        plt.plot(dates, return_rates, color="blue")
+        plt.plot(dates, np.array(return_rates) * 100, color="blue")
         plt.xlabel("dates")
         plt.ylabel("revenue rate (%)")
         plt.grid(True)
