@@ -42,7 +42,7 @@ class Visualizer:
         else:
             plt.show()
 
-    def plot_averate_return_rates(self, rates_list, agent_name, env_name):
+    def plot_average_return_rates(self, rates_list, agent_name, env_name):
         episodes_list = list(range(len(rates_list)))
         plt.plot(episodes_list, np.array(rates_list) * 100)
         plt.xlabel('Episodes')

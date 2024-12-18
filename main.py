@@ -79,7 +79,7 @@ def test_dqn():
     # 可视化训练结果
     visual = Visualizer()
     visual.plot_price(data_gen.data)
-    visual.plot_averate_return_rates(returns, 'DQN', 'Easy Trading Enviroment')
+    visual.plot_average_return_rates(returns, 'DQN', 'Easy Trading Enviroment')
 
 if __name__ == '__main__':
     # test_gen()    
