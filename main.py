@@ -25,30 +25,31 @@ def test_agent():
         state, reward, done, info = env.step(action)
         env.render()
 
-def test_single_stock():
-    data_gen = SingleStockDataGenerator()
-    data_gen.generate()
+
+def test_gen():
+    # set random seed
+    seed_manager = RandomSeedManager()
+
+    stock_num = 1000
+    data_gen = SingleStockDataGenerator(start_date='2010-01-01', end_date='2020-01-01')
+    rates = []
+    for _ in range(stock_num):
+        data_gen.reset()
+        data_gen.generate()
+        rates.append(data_gen.get_average_return_rate())
+
+    print('mean return rate: ', sum(rates) / len(rates))
+    
+    print(data_gen.get_average_return_rate())
     visual = Visualizer()
     visual.plot_price(data_gen.data)
 
-def test_multi_stock():
-    stock_num = 100
-    data_gen = SingleStockDataGenerator()
-    last_prices = []
-    for _ in range(100):
-        data_gen.reset()
-        data_gen.generate()
-        last_prices.append(data_gen.iloc[-1]['close'])
-    
-    print('min price: ', min(last_prices))
-    print('max price: ', max(last_prices))
-    
     # 创建直方图
-    plt.hist(last_prices, bins=10, edgecolor='black')  # bins控制分组的数量
+    plt.hist(rates, bins=10, edgecolor='black')  # bins控制分组的数量
 
     # 添加标题和标签
-    plt.title('Stock Price Distribution')
-    plt.xlabel('Price')
+    plt.title('Annual Return rate Distribution')
+    plt.xlabel('Return Rate')
     plt.ylabel('Frequency')
 
     # 显示图形
@@ -59,7 +60,7 @@ def test_dqn():
     seed_manager = RandomSeedManager()
 
     # generate data
-    data_gen = SingleStockDataGenerator()
+    data_gen = SingleStockDataGenerator(start_date='2018-01-01', end_date='2020-01-01')
     data_gen.generate()
 
     # create env
@@ -84,5 +85,4 @@ def test_dqn():
 if __name__ == '__main__':
     # test_gen()    
     # test_agent()
-    # test_single_stock()
     test_dqn()

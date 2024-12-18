@@ -69,9 +69,9 @@ class DataGenerator:
 # DataGenerator子类：简单涨跌规则下生成的股票数据
 class SingleStockDataGenerator(DataGenerator):
     def __init__(
-        self, start_date='2022-01-01', end_date='2025-01-01', 
-        initial_price=1, amplitude=0.02, trend_days=2, down_up_p=0.7, 
-        up_down_p=0.6, plunge_count=5, plunge_p = 0.2, plunge_rate= 0.5, seed=None
+        self, start_date='2000-01-01', end_date='2024-01-01', 
+        initial_price=1, amplitude=0.02, trend_days=2, down_up_p=0.75, 
+        up_down_p=0.7, plunge_count=5, plunge_p=0.1, plunge_rate=0.2, seed=None
     ):
         """
         初始化函数
@@ -109,14 +109,13 @@ class SingleStockDataGenerator(DataGenerator):
 
         # 生成后续价格
         for _ in range(1, len(dates)):
-            # 判断是否暴跌
-            if consecutive_days >= self.plunge_count and current_trend == -1:
-                if np.random.rand() < self.plunge_p:
-                    new_price = prices[-1] * (1 - self.plunge_rate)
-                    prices.append(new_price)
-                    consecutive_days = 0
-                    current_trend = 1 if np.random.rand() < 0.5 else -1 
-                    continue
+            # 判断是否暴跌或暴涨
+            if consecutive_days >= self.plunge_count and np.random.rand() < self.plunge_p:
+                new_price = prices[-1] * (1 + current_trend * self.plunge_rate)
+                prices.append(new_price)
+                consecutive_days = 0
+                current_trend = 1 if np.random.rand() < 0.5 else -1 
+                continue
             
             if consecutive_days < self.trend_days:  # 趋势延续
                 consecutive_days += 1
@@ -143,3 +142,9 @@ class SingleStockDataGenerator(DataGenerator):
             'date': dates,
             'close': prices
         })
+    
+    def get_average_return_rate(self):
+        '''返回生成的单只股票的年均回报率'''
+        years = (self.data.iloc[-1]['date'] - self.data.iloc[0]['date']).days / 365.25
+        current_price = self.data.iloc[-1]['close']
+        return (current_price / self.initial_price) ** (1/years) - 1
