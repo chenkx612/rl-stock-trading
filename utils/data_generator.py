@@ -70,7 +70,7 @@ class DataGenerator:
 class SingleStockDataGenerator(DataGenerator):
     def __init__(
         self, start_date='2000-01-01', end_date='2024-01-01', 
-        initial_price=1, amplitude=0.02, trend_days=2, down_up_p=0.75, 
+        initial_price=1, amplitude=0.02, trend_days=2, down_up_p=0.74, 
         up_down_p=0.7, plunge_count=5, plunge_p=0.1, plunge_rate=0.2, seed=None
     ):
         """
