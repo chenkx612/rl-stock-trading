@@ -43,9 +43,19 @@ class Visualizer:
             plt.show()
 
     def plot_average_return_rates(self, rates_list, agent_name, env_name):
+        '''绘制agent训练过程中年均回报率随episodes的图像'''
         episodes_list = list(range(len(rates_list)))
         plt.plot(episodes_list, np.array(rates_list) * 100)
         plt.xlabel('Episodes')
-        plt.ylabel('Average return rate(%)')
+        plt.ylabel('Average annual return rate(%)')
         plt.title('{} on {}'.format(agent_name, env_name))
+        plt.show()
+
+    def plot_return_rates(self, return_rates, dates):
+        '''绘制收益率(%)随时间的图像'''
+        plt.figure(figsize=(12, 6))
+        plt.plot(dates, return_rates, color="blue")
+        plt.xlabel("dates")
+        plt.ylabel("revenue rate (%)")
+        plt.grid(True)
         plt.show()

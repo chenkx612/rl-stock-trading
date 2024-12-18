@@ -10,7 +10,7 @@ class EasyTradingEnv(TradingEnv):
         super(EasyTradingEnv, self).__init__(stock_data, initial_balance)
 
         self.stock_owned = 0  # 当前持有股票数量
-        self.stock_price = 0  # 当前股价
+        self.stock_price = stock_data.iloc[0]['close']  # 当前股价
         self.window_size = window_size # 记录股价趋势的时间窗口大小
         self.past_returns = deque([0] * self.window_size, maxlen=window_size)
         
@@ -19,9 +19,9 @@ class EasyTradingEnv(TradingEnv):
 
         # 观察空间：包括 (balance, stock_owned, stock_price) 和过去 window_size 天的涨跌百分比
         self.observation_space = spaces.Box(
-            low=np.array([0, 0, 0] + [-100] * window_size),  
-            high=np.array([np.inf, np.inf, np.inf] + [100] * window_size),  
-            dtype=np.float32
+            low=np.array([-100.0] * window_size),  
+            high=np.array([100.0] * window_size),  
+            dtype=np.float64
         )
     
     def update_total_value(self):
@@ -30,7 +30,7 @@ class EasyTradingEnv(TradingEnv):
 
     def get_state(self):
         # 获取当前状态，包含 balance、stock_owned 和 stock_price，后跟过去 window_size 天的涨跌幅
-        return np.array([self.balance, self.stock_owned, self.stock_price] + list(self.past_returns))
+        return list(self.past_returns)
 
     def reset(self):
         super(EasyTradingEnv, self).reset()
@@ -54,6 +54,13 @@ class EasyTradingEnv(TradingEnv):
         self.balance -= buy_num * self.stock_price
         self.stock_owned += buy_num
 
+        # 更新当前步骤
+        self.current_step += 1
+        done = self.current_step > len(self.stock_data) - 1  # 如果到达数据末尾，结束
+        if done:
+            state = self.get_state()
+            return state, 0, done, {}
+
         # 更新stock_price
         stock_data_row = self.stock_data.iloc[self.current_step]
         pre_price = self.stock_price
@@ -68,10 +75,6 @@ class EasyTradingEnv(TradingEnv):
         pre_value = self.total_value
         self.total_value = self.update_total_value()
         reward = self.total_value - pre_value
-
-        # 更新当前步骤
-        self.current_step += 1
-        done = self.current_step > len(self.stock_data) - 1  # 如果到达数据末尾，结束
 
         # 获取当前状态
         state = self.get_state()

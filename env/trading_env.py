@@ -35,3 +35,7 @@ class TradingEnv(gym.Env):
         print(f"Step: {self.current_step}")
         print(f"Balance: {self.balance}")
  
+    def get_return_rate(self):
+        '''获取当前收益率(%)'''
+        self.update_total_value()
+        return (self.total_value - self.initial_balance) / self.initial_balance * 100
