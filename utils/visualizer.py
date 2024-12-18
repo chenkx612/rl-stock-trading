@@ -42,11 +42,10 @@ class Visualizer:
         else:
             plt.show()
 
-    def plot_returns(self, return_list, initial_balance, agent_name, env_name):
-        episodes_list = list(range(len(return_list)))
-        return_list = np.array(return_list) / initial_balance
-        plt.plot(episodes_list, return_list)
+    def plot_averate_return_rates(self, rates_list, agent_name, env_name):
+        episodes_list = list(range(len(rates_list)))
+        plt.plot(episodes_list, np.array(rates_list) * 100)
         plt.xlabel('Episodes')
-        plt.ylabel('Yield (%)')
+        plt.ylabel('Average return rate(%)')
         plt.title('{} on {}'.format(agent_name, env_name))
         plt.show()

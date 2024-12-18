@@ -11,7 +11,9 @@ class TradingEnv(gym.Env):
         self.initial_balance = initial_balance  # 初始账户余额
         self.current_step = 0  # 当前时间步
         self.balance = self.initial_balance  # 当前余额
-        self.total_value = self.balance
+        self.total_value = self.balance # 资产总价值
+        self.start_date = self.stock_data.iloc[0]['date']
+        self.end_date = self.stock_data.iloc[-1]['date']
 
     def update_total_value(self):
         '''更新total_value, 也即当前所有资产总价值'''

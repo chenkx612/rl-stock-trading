@@ -96,12 +96,12 @@ class DQNAgent(Agent):
         self.optimizer.step()
 
     def train(self, env, num_episodes=1000):
-        """训练智能体，并记录每个 episode 的累计 return"""
-        returns = []  # 用于记录每个 episode 的累计 return
+        """训练智能体，并记录每个 episode 的平均年回报率"""
+        return_rates = []  # 用于记录每个 episode 的累计 return
+        years = (env.end_date - env.start_date).days / 365.25
         for episode in tqdm(range(num_episodes), desc="Training Progress"):
             state = env.reset()
             done = False
-            total_reward = 0  # 当前 episode 的累计 return
 
             while not done:
                 action = self.choose_action(state)
@@ -109,16 +109,15 @@ class DQNAgent(Agent):
                 self.store_experience(state, action, reward, next_state, done)
                 self.update()
                 state = next_state
-                total_reward += reward
 
-            # 记录当前 episode 的累计 return
-            returns.append(total_reward)
+            # 记录当前 episode 的平均年回报率
+            return_rates.append((env.total_value/env.initial_balance)**(1/years)-1)
 
             # 每 10 个回合更新目标网络
             if episode % 10 == 0:
                 self.update_target_network()
 
-        return returns
+        return return_rates 
 
     def save_model(self, filename):
         """保存模型参数到本地"""
