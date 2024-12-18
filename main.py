@@ -5,7 +5,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 import torch
 
-def test_gen():
+def test_gen(visualization=False):
     # set random seed
     seed_manager = RandomSeedManager()
 
@@ -19,20 +19,20 @@ def test_gen():
 
     print('mean return rate: ', sum(rates) / len(rates))
     
-    print(data_gen.get_average_return_rate())
-    visual = Visualizer()
-    visual.plot_price(data_gen.data)
+    if visualization:
+        visual = Visualizer()
+        visual.plot_price(data_gen.data)
 
-    # 创建直方图
-    plt.hist(rates, bins=10, edgecolor='black')  # bins控制分组的数量
+        # 创建直方图
+        plt.hist(rates, bins=10, edgecolor='black')  # bins控制分组的数量
 
-    # 添加标题和标签
-    plt.title('Annual Return rate Distribution')
-    plt.xlabel('Return Rate')
-    plt.ylabel('Frequency')
+        # 添加标题和标签
+        plt.title('Annual Return rate Distribution')
+        plt.xlabel('Return Rate')
+        plt.ylabel('Frequency')
 
-    # 显示图形
-    plt.show()
+        # 显示图形
+        plt.show()
 
 def test_dqn():
     # set random seed
@@ -62,7 +62,7 @@ def test_dqn():
 
 def main():
     # set random seed
-    seed_manager = RandomSeedManager()
+    seed_manager = RandomSeedManager(seed=41)
 
     # initiate visualizer
     viual = Visualizer()
@@ -71,7 +71,7 @@ def main():
     data_gen = SingleStockDataGenerator(start_date='2000-01-01', end_date='2024-01-01')
     data_gen.generate()
     viual.plot_price(data_gen.data)
-    print('mean return rate of the stock market: ', data_gen.get_average_return_rate())
+    print('return rate of this stock: ', data_gen.get_average_return_rate())
 
     # create env
     train_data = data_gen.get(start_date='2000-01-01', end_date='2019-12-31')
