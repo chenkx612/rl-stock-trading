@@ -40,3 +40,9 @@ class TradingEnv(gym.Env):
         '''获取当前收益率'''
         self.update_total_value()
         return (self.total_value - self.initial_balance) / self.initial_balance
+
+    def get_annual_return_rate(self):
+        '''获取当前年均收益率'''
+        current_date = self.stock_data.iloc[self.current_step-1]['date']
+        years = (current_date - self.start_date).days / 365.25
+        return (self.total_value / self.initial_balance) ** (1/years) - 1

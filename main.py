@@ -20,7 +20,7 @@ def main():
     train_start_date = '2000-01-01'
     train_end_date = '2019-12-31'
     val_start_date = '2020-01-01'
-    val_end_date = '2021-01-01'
+    val_end_date = '2024-01-01'
     train_data = data_gen.get(start_date=train_start_date, end_date=train_end_date)
     val_data = data_gen.get(start_date=val_start_date, end_date=val_end_date)
     train_env = EasyTradingEnv(train_data, trade_cycle=5)
@@ -56,6 +56,7 @@ def main():
         state, reward, done, _ = val_env.step(action)
         return_rates.append(val_env.get_return_rate())
     visual.plot_return_rates(return_rates, val_start_date, val_end_date)
+    print('annual return rate of validation: ', val_env.get_annual_return_rate())
 
 if __name__ == '__main__':
     main()
