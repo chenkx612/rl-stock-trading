@@ -1,10 +1,11 @@
 # utils/data_generator.py
 import pandas as pd
 import numpy as np
+import os
 
 # 基类：负责数据的生成
 class DataGenerator:
-    def __init__(self, start_date, end_date, seed):
+    def __init__(self, start_date, end_date):
         """
         初始化 DataGenerator 类。
         :param start_date: 开始日期，格式为 'YYYY-MM-DD'。
@@ -14,7 +15,9 @@ class DataGenerator:
         self.data = None # 用于存储生成的股票价格数据
         self.start_date = start_date # 用于记录数据的开始日期
         self.end_date = end_date # 用于记录数据的结束日期
-        self.seed = seed 
+        self.data_dir = "data"  # 存储路径
+        if not os.path.exists(self.data_dir):
+            os.makedirs(self.data_dir)
 
     def generate(self):
         """
@@ -24,19 +27,46 @@ class DataGenerator:
         """
         raise NotImplementedError('generate方法必须在子类中实现')
 
-    def save(self, filename):
+    def save(self, filename, file_format="csv"):
         """
-        将生成的数据保存到文件。
-        :param filename: 保存文件的路径。
+        保存股价数据到文件
+        :param filename: 文件路径
+        :param file_format: 文件格式("csv" 或 "pickle")
         """
-        pass
+        if self.data.empty:
+            raise ValueError("数据还未生成，请先生成数据")
 
-    def load(self, filepath):
+        # 定义模型保存路径
+        data_path = os.path.join(self.data_dir, filename) 
+        if file_format == "csv":
+            # 保存为 CSV 文件
+            self.data.to_csv(data_path, index=False)
+            print(f"Data saved to {data_path} in CSV format.")
+        elif file_format == "pickle":
+            # 保存为 Pickle 文件
+            self.data.to_pickle(data_path)
+            print(f"Data saved to {data_path} in Pickle format.")
+        else:
+            print("Unsupported file format. Please use 'csv' or 'pickle'.")
+
+    def load(self, filename, file_format="csv"):
         """
-        从文件中加载数据。
-        :param filepath: 数据文件路径。
+        从文件加载股价数据
+        :param filename: 文件路径
+        :param file_format: 文件格式("csv" 或 "pickle")
         """
-        pass
+        # 定义模型保存路径
+        data_path = os.path.join(self.data_dir, filename) 
+        if file_format == "csv":
+            # 从 CSV 文件加载
+            self.data = pd.read_csv(data_path)
+            print(f"Data loaded from {data_path} in CSV format.")
+        elif file_format == "pickle":
+            # 从 Pickle 文件加载
+            self.data = pd.read_pickle(data_path)
+            print(f"Data loaded from {data_path} in Pickle format.")
+        else:
+            print("Unsupported file format. Please use 'csv' or 'pickle'.")
 
     def get(self, start_date=None, end_date=None):
         """
@@ -70,8 +100,8 @@ class DataGenerator:
 class SingleStockDataGenerator(DataGenerator):
     def __init__(
         self, start_date='2000-01-01', end_date='2024-01-01', 
-        initial_price=1, amplitude=0.02, trend_days=1, down_up_p=0.55, 
-        up_down_p=0.53, plunge_count=5, plunge_p=0.05, plunge_rate=0.1, seed=None
+        initial_price=1, amplitude=0.02, trend_days=1, down_up_p=0.57, 
+        up_down_p=0.55, plunge_count=5, plunge_p=0.1, plunge_rate=0.1, seed=None
     ):
         """
         初始化函数
@@ -87,7 +117,7 @@ class SingleStockDataGenerator(DataGenerator):
         :param plunge_p: 连跌plunge_count后的暴跌可能
         :param plunge_rate: 暴跌比例
         """
-        super().__init__(start_date, end_date, seed)
+        super().__init__(start_date, end_date)
         self.initial_price = initial_price
         self.amplitude = amplitude
         self.trend_days = trend_days

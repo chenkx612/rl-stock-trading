@@ -27,7 +27,6 @@ class Visualizer:
             data['date'] = pd.to_datetime(data['date'])
 
         # 绘制价格曲线
-        plt.figure(figsize=(12, 6))
         plt.plot(data['date'], data['close'], label="Price", color="blue")
         plt.title(title)
         plt.xlabel("Date")
@@ -53,7 +52,6 @@ class Visualizer:
 
     def plot_return_rates(self, return_rates, dates):
         '''绘制收益率(%)随时间的图像'''
-        plt.figure(figsize=(12, 6))
         plt.plot(dates, np.array(return_rates) * 100, color="blue")
         plt.xlabel("dates")
         plt.ylabel("revenue rate (%)")
