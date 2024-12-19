@@ -50,8 +50,9 @@ class Visualizer:
         plt.title('{} on {}'.format(agent_name, env_name))
         plt.show()
 
-    def plot_return_rates(self, return_rates, dates):
+    def plot_return_rates(self, return_rates, start_date, end_date):
         '''绘制收益率(%)随时间的图像'''
+        dates = pd.date_range(start=start_date, end=end_date, periods=len(return_rates))
         plt.plot(dates, np.array(return_rates) * 100, color="blue")
         plt.xlabel("dates")
         plt.ylabel("revenue rate (%)")

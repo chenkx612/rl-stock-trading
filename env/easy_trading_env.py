@@ -6,21 +6,21 @@ from collections import deque
 
 # TradingEnv的子类，假设股市中只包含一种股票，每次买入只能全仓，卖出只能平仓
 class EasyTradingEnv(TradingEnv):
-    def __init__(self, stock_data, initial_balance=10000, window_size=5):
-        super(EasyTradingEnv, self).__init__(stock_data, initial_balance)
+    def __init__(self, stock_data, initial_balance=10000, trade_cycle=1, window_size=5):
+        super(EasyTradingEnv, self).__init__(stock_data, initial_balance, trade_cycle)
 
         self.stock_owned = 0  # 当前持有股票数量
         self.stock_price = stock_data.iloc[0]['close']  # 当前股价
-        self.window_size = window_size # 记录股价趋势的时间窗口大小
-        self.past_returns = deque([0] * self.window_size, maxlen=window_size)
+        self.window_size = window_size * trade_cycle # 记录股价趋势的时间窗口大小
+        self.past_returns = deque([0] * self.window_size, maxlen=self.window_size)
         
         # 动作空间：持有（0）、全仓（1）、平仓（2）
         self.action_space = spaces.Discrete(3)
 
         # 观察空间：包括 (balance, stock_owned, stock_price) 和过去 window_size 天的涨跌百分比
         self.observation_space = spaces.Box(
-            low=np.array([-100.0] * window_size),  
-            high=np.array([100.0] * window_size),  
+            low=np.array([-100.0] * self.window_size),  
+            high=np.array([100.0] * self.window_size),  
             dtype=np.float64
         )
     
@@ -54,22 +54,28 @@ class EasyTradingEnv(TradingEnv):
         self.balance -= buy_num * self.stock_price
         self.stock_owned += buy_num
 
-        # 更新当前步骤
-        self.current_step += 1
-        done = self.current_step > len(self.stock_data) - 1  # 如果到达数据末尾，结束
-        if done:
-            state = self.get_state()
-            return state, 0, done, {}
+        # 更新股价，历史涨跌数据，资产总价值
+        for _ in range(self.trade_cycle):
 
-        # 更新stock_price
-        stock_data_row = self.stock_data.iloc[self.current_step]
-        pre_price = self.stock_price
-        self.stock_price = stock_data_row['close']
+            # 检查是否到达数据末尾
+            self.current_step += 1
+            done = self.current_step >= len(self.stock_data)  # 如果到达数据末尾，结束
+            if done:
+                state = self.get_state()
+                pre_value = self.total_value
+                self.total_value = self.update_total_value()
+                reward = self.total_value - pre_value
+                return state, reward, done, {}
 
-        # 更新past_returns
-        if self.current_step > 0:
-            pct_change = (self.stock_price - pre_price) / pre_price * 100
-            self.past_returns.append(pct_change)
+            # 更新stock_price
+            stock_data_row = self.stock_data.iloc[self.current_step]
+            pre_price = self.stock_price
+            self.stock_price = stock_data_row['close']
+
+            # 更新past_returns
+            if self.current_step > 0:
+                pct_change = (self.stock_price - pre_price) / pre_price * 100
+                self.past_returns.append(pct_change)
 
         # 计算reward
         pre_value = self.total_value
