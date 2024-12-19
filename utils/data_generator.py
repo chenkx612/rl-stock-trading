@@ -61,12 +61,20 @@ class DataGenerator:
             # 从 CSV 文件加载
             self.data = pd.read_csv(data_path)
             print(f"Data loaded from {data_path} in CSV format.")
+            self._update_start_end_days()
         elif file_format == "pickle":
             # 从 Pickle 文件加载
             self.data = pd.read_pickle(data_path)
             print(f"Data loaded from {data_path} in Pickle format.")
+            self._update_start_end_days()
         else:
             print("Unsupported file format. Please use 'csv' or 'pickle'.")
+
+    def _update_start_end_days(self):
+        if self.data.empty:
+            raise ValueError("数据还未生成，请先生成数据")
+        self.start_date = self.data.iloc[0]['date']
+        self.end_date = self.data.iloc[-1]['date']
 
     def get(self, start_date=None, end_date=None):
         """
