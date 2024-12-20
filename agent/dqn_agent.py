@@ -11,10 +11,16 @@ import os
 
 # Agent子类：对于EasyTradingEnv，采用DQN算法
 class DQNAgent(Agent):
-    def __init__(self, state_dim, action_dim, epsilon=0.1, alpha=0.001, gamma=0.99, batch_size=64, memory_size=10000):
+    def __init__(
+        self, state_dim, action_dim, epsilon_initial=1, epsilon_min=0.01,
+        decay_rate=0.001, alpha=0.001, gamma=0.99, batch_size=64, memory_size=10000
+    ):
         super(DQNAgent, self).__init__(state_dim, action_dim)
         # 初始化网络、优化器和经验回放池
-        self.epsilon = epsilon  # 探索率
+        self.epsilon_initial = epsilon_initial  # 探索率
+        self.epsilon_min = epsilon_min
+        self.decay_rate = decay_rate
+        self.step = 0
         self.alpha = alpha  # 学习率
         self.gamma = gamma  # 折扣因子
         self.batch_size = batch_size
@@ -47,13 +53,16 @@ class DQNAgent(Agent):
         :param is_training: 是否处于训练模式
         :return: 选择的动作
         """
-        if is_training and np.random.rand() < self.epsilon:
-            return random.randint(0, self.action_dim - 1)  # 随机选择动作（探索）
-        else:
-            state_tensor = torch.FloatTensor(state).unsqueeze(0).to(self.device)
-            with torch.no_grad():
-                q_values = self.q_network(state_tensor)
-            return torch.argmax(q_values).item()  # 选择 Q 值最大的动作（利用）
+        if is_training:
+            epsilon_delta = self.epsilon_initial - self.epsilon_min
+            epsilon = self.epsilon_min + epsilon_delta * np.exp(-self.decay_rate * self.step)
+            self.step += 1
+            if np.random.rand() < epsilon:
+                return random.randint(0, self.action_dim - 1)  # 随机选择动作（探索）
+        state_tensor = torch.FloatTensor(state).unsqueeze(0).to(self.device)
+        with torch.no_grad():
+            q_values = self.q_network(state_tensor)
+        return torch.argmax(q_values).item()  # 选择 Q 值最大的动作（利用）
 
     def store_experience(self, state, action, reward, next_state, done):
         """存储经验到回放池"""
