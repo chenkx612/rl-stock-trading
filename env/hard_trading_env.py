@@ -1,26 +1,31 @@
-# env/easy_traing_env.py
+# env/hard_traing_env.py
 from env.trading_env import TradingEnv
 import numpy as np
 from gym import spaces
 from collections import deque
 
-# TradingEnv的子类，假设股市中只包含一种股票，每次买入只能全仓，卖出只能平仓
-class EasyTradingEnv(TradingEnv):
+# TradingEnv的子类，股市中包含多种股票
+class HardTradingEnv(TradingEnv):
     def __init__(self, stock_data, initial_balance=10000, trade_cycle=1, window_size=5):
-        super(EasyTradingEnv, self).__init__(stock_data, initial_balance, trade_cycle)
+        super(HardTradingEnv, self).__init__(stock_data, initial_balance, trade_cycle)
 
-        self.stock_owned = 0  # 当前持有股票数量
-        self.stock_price = stock_data.iloc[0]['close']  # 当前股价
+        # 获取股票代码
+        self.stock_symbols = stock_data.columns.tolist()[1:]
+
+        # 初始化属性
+        self.stock_num = len(self.stock_symbols)
+        self.stock_owned = [0] * self.stock_num  # 当前持有股票数量
+        self.stock_price = self.stock_data.iloc[0, 1:]  # 当前股价
         self.window_size = window_size  # 记录股价趋势的时间窗口大小
-        self.past_returns = deque([0] * self.window_size, maxlen=self.window_size)
+        self.past_returns = [deque([0] * self.window_size, maxlen=self.window_size) for _ in range(self.stock_num)]
         
         # 动作空间：持有（0）、全仓（1）、平仓（2）
-        self.action_space = spaces.Discrete(3)
+        self.action_space = spaces.Discrete(3**self.stock_num)
 
         # 观察空间：包括 (balance, stock_owned, stock_price) 和过去 window_size 天的涨跌百分比
         self.observation_space = spaces.Box(
-            low=np.array([-100.0] * self.window_size),  
-            high=np.array([100.0] * self.window_size),  
+            low=np.array([-100.0] * self.window_size * self.stock_num),  
+            high=np.array([100.0] * self.window_size * self.stock_num),  
             dtype=np.float64
         )
     

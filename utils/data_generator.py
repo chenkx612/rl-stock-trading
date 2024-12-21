@@ -104,26 +104,25 @@ class DataGenerator:
         self.data = None
 
 
-# DataGenerator子类：简单涨跌规则下生成的股票数据
+# DataGenerator子类：生成单支股票的历史收盘价数据
 class SingleStockDataGenerator(DataGenerator):
     def __init__(
         self, start_date='2000-01-01', end_date='2024-01-01', 
         initial_price=1, amplitude=0.02, trend_days=2, down_up_p=0.78, 
-        up_down_p=0.75, plunge_count=5, plunge_p=0.1, plunge_rate=0.1, seed=None
+        up_down_p=0.75, burst_count=5, burst_p=0.1, burst_rate=0.1
     ):
         """
         初始化函数
         :param start_date: 开始日期，格式为 'YYYY-MM-DD'。
         :param end_date: 结束日期，格式为 'YYYY-MM-DD'。
         :param initial_price: 初始股价
-        :param amplitude: 固定的涨跌幅度
-        :param trend_days: 确定的趋势延续天数
-        :param seed: 随机数种子，用于结果的可重复性
-        :param down_up_p: 连跌trend_days后转涨的概率
-        :param up_down_p: 连涨trend_days后转跌的概率
-        :param plunge_count: 可能触发暴跌的连跌天数
-        :param plunge_p: 连跌plunge_count后的暴跌可能
-        :param plunge_rate: 暴跌比例
+        :param amplitude: 涨跌幅期望
+        :param trend_days: 趋势延续天数期望
+        :param down_up_p: 连跌后转涨的概率
+        :param up_down_p: 连涨后转跌的概率
+        :param burst_count: 可能触发暴跌(涨)的连跌(涨)天数
+        :param burst_p: 连跌(涨)burst_count后的暴跌(涨)可能
+        :param burst_rate: 暴跌(涨)比例
         """
         super().__init__(start_date, end_date)
         self.initial_price = initial_price
@@ -131,14 +130,11 @@ class SingleStockDataGenerator(DataGenerator):
         self.trend_days = trend_days
         self.down_up_p = down_up_p
         self.up_down_p = up_down_p
-        self.plunge_count = plunge_count
-        self.plunge_rate = plunge_rate
-        self.plunge_p = plunge_p
+        self.burst_count = burst_count
+        self.burst_rate = burst_rate
+        self.burst_p = burst_p
 
     def generate(self):
-        """
-        根据特定规则生成单支股票的每日价格数据。
-        """
         # 初始化参数
         dates = pd.date_range(start=self.start_date, end=self.end_date)
         prices = [self.initial_price]
@@ -148,8 +144,8 @@ class SingleStockDataGenerator(DataGenerator):
         # 生成后续价格
         for _ in range(1, len(dates)):
             # 判断是否暴跌或暴涨
-            if consecutive_days >= self.plunge_count and np.random.rand() < self.plunge_p:
-                new_price = prices[-1] * (1 + current_trend * self.plunge_rate)
+            if consecutive_days >= self.burst_count and np.random.rand() < self.burst_p:
+                new_price = prices[-1] * (1 + current_trend * self.burst_rate)
                 prices.append(new_price)
                 consecutive_days = 0
                 current_trend = 1 if np.random.rand() < 0.5 else -1 
@@ -186,3 +182,96 @@ class SingleStockDataGenerator(DataGenerator):
         years = (self.data.iloc[-1]['date'] - self.data.iloc[0]['date']).days / 365.25
         current_price = self.data.iloc[-1]['close']
         return (current_price / self.initial_price) ** (1/years) - 1
+
+
+# DataGenerator子类：生成多支股票的历史收盘价数据
+class MultiStockDataGenerator(DataGenerator):
+    def __init__(
+        self, stock_symbols, initial_price, start_date='2000-01-01', 
+        end_date='2024-01-01', amplitude=0.02, trend_days=2, down_up_p=0.78, 
+        up_down_p=0.75, burst_count=5, burst_p=0.1, burst_rate=0.1 
+    ): 
+        """
+        初始化函数
+        :param start_date: 开始日期，格式为 'YYYY-MM-DD'。
+        :param end_date: 结束日期，格式为 'YYYY-MM-DD'。
+        :param initial_price: 初始股价
+        :param amplitude: 涨跌幅期望
+        :param trend_days: 趋势延续天数期望
+        :param down_up_p: 连跌后转涨的概率
+        :param up_down_p: 连涨后转跌的概率
+        :param burst_count: 可能触发暴跌(涨)的连跌(涨)天数
+        :param burst_p: 连跌(涨)burst_count后的暴跌(涨)可能
+        :param burst_rate: 暴跌(涨)比例
+        """
+        super().__init__(start_date, end_date)
+        self.stock_symbols = stock_symbols
+        self.initial_price = initial_price
+        self.amplitude = amplitude
+        self.trend_days = trend_days
+        self.down_up_p = down_up_p
+        self.up_down_p = up_down_p
+        self.burst_count = burst_count
+        self.burst_rate = burst_rate
+        self.burst_p = burst_p
+
+    def generate(self):
+        dates = pd.date_range(start=self.start_date, end=self.end_date)  # 日期列
+        price_lists = []  # 用于存储n支股票的历史收盘价数据
+
+        # 逐一生成
+        for i in range(len(self.stock_symbols)):
+            prices = [self.initial_price[i]]
+            consecutive_days = 0  # 当前涨或跌的连续天数
+            current_trend = 1 if np.random.rand() < 0.5 else -1  # 初始状态，随机决定涨或跌（1: 涨，-1: 跌）
+
+            # 生成后续价格
+            for _ in range(1, len(dates)):
+
+                # 判断是否暴跌或暴涨
+                if consecutive_days >= self.burst_count and np.random.rand() < self.burst_p:
+                    new_price = prices[-1] * (1 + current_trend * self.burst_rate)
+                    prices.append(new_price)
+                    consecutive_days = 0
+                    current_trend = 1 if np.random.rand() < 0.5 else -1 
+                    continue
+                
+                # 更新current_trend
+                if consecutive_days < self.trend_days:  # 趋势延续
+                    consecutive_days += 1
+                else:  # 趋势可能反转
+                    if current_trend == 1:  # 连涨几天后
+                        change_trend = np.random.rand() < self.up_down_p
+                    elif current_trend == -1:  # 连跌几天后
+                        change_trend = np.random.rand() < self.down_up_p
+                    if not change_trend: # 趋势没变
+                        consecutive_days += 1
+                    else: # 趋势改变，重新计数连续天数
+                        current_trend = -current_trend
+                        consecutive_days = 1  
+
+                # 更新价格
+                if current_trend == 1:  # 涨
+                    new_price = prices[-1] * (1 + self.amplitude)
+                else:  # 跌
+                    new_price = prices[-1] * (1 - self.amplitude)
+                prices.append(new_price)
+            
+            # 将生成的价格加入price_lists
+            price_lists.append(prices)
+
+        # 构建 DataFrame
+        self.data = pd.DataFrame({
+            'date': dates,
+        })
+        for i in range(len(self.stock_symbols)):
+            self.data[self.stock_symbols[i]] = price_lists[i]
+    
+    def get_average_return_rate(self):
+        '''以字典形式返回生成的多只股票的年均回报率'''
+        years = (self.data.iloc[-1]['date'] - self.data.iloc[0]['date']).days / 365.25
+        rates = {}
+        for i in range(len(self.stock_symbols)):
+            current_price = self.data.iloc[-1][self.stock_symbols[i]]
+            rates[self.stock_symbols[i]] = ((current_price / self.initial_price[i]) ** (1/years) - 1)
+        return rates

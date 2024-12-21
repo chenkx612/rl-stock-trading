@@ -40,6 +40,40 @@ class Visualizer:
             print(f"Plot saved to {save_path}")
         else:
             plt.show()
+        
+    def plot_multi_price(
+        self, data: pd.DataFrame, title: str = "Stock Price Comparison", 
+        xlabel: str = "Date", ylabel: str = "Price"
+    ):
+        """
+        绘制多只股票的价格趋势对比图
+
+        参数:
+        - data (pd.DataFrame): 包含日期和股票价格的DataFrame, 必须包含date列和至少两列股票价格数据
+        - title (str): 图表的标题
+        - xlabel (str): X轴的标签, 默认为"Date"
+        - ylabel (str): Y轴的标签, 默认为"Price"
+        """
+        if 'date' not in data.columns:
+            raise ValueError("DataFrame must contain a 'date' column")
+        
+        # 绘制每个股票的价格曲线
+        for column in data.columns:
+            if column != 'date':
+                plt.plot(data['date'], data[column], label=column)
+        
+        # 设置标题和标签
+        plt.title(title)
+        plt.xlabel(xlabel)
+        plt.ylabel(ylabel)
+        
+        # 添加图例
+        plt.legend()
+        
+        # 显示图像
+        plt.xticks(rotation=45)  # 日期标签旋转，避免重叠
+        plt.tight_layout()  # 调整布局
+        plt.show()
 
     def plot_average_return_rates(self, rates_list, agent_name, env_name):
         '''绘制agent训练过程中年均回报率随episodes的图像'''
